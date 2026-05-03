@@ -13,7 +13,7 @@ export default function App() {
 
   return (
     <main>
-      <D3Chart data={data} />
+      <D3Chart data={data ? data.array : []} />
     </main>
   );
 }

@@ -4,6 +4,7 @@ interface AttributeMetrics {
   range: number | null;
   mean: number | null;
   distinctCount: number;
+  hasNegative: boolean;
 }
 
 type PortfolioMetrics = Record<string, AttributeMetrics>;
@@ -30,7 +31,7 @@ const computeAttributeMetrics = (values: unknown[]): AttributeMetrics => {
   const distinctCount = new Set(values.map((v) => JSON.stringify(v))).size;
 
   if (numericValues.length === 0) {
-    return { range: null, mean: null, distinctCount };
+    return { range: null, mean: null, distinctCount, hasNegative: false };
   }
 
   const min = Math.min(...numericValues);
@@ -38,7 +39,9 @@ const computeAttributeMetrics = (values: unknown[]): AttributeMetrics => {
   const mean =
     numericValues.reduce((sum, v) => sum + v, 0) / numericValues.length;
 
-  return { range: max - min, mean, distinctCount };
+  const hasNegative = numericValues.some((v) => v < 0);
+
+  return { range: max - min, mean, distinctCount, hasNegative };
 };
 
 const analyzeData = (snapshot: unknown): PortfolioMetrics => {
