@@ -13,12 +13,7 @@ export const addAxis: Modifier<D3ChartProps["data"][number]> = ({
   svg
     .append("g")
     .attr("transform", `translate(${margins.left},0)`)
-    .call(
-      d3
-        .axisLeft(yScale)
-        .ticks(5)
-        .tickSize(-(dimensions.width - margins.left - margins.right)),
-    )
+    .call(d3.axisLeft(yScale).ticks(5).tickSize(-dimensions.innerWidth))
     .call((g) => g.select(".domain").remove())
     .call((g) => g.selectAll(".tick text").remove())
     .call((g) =>
@@ -48,6 +43,7 @@ export const addAxis: Modifier<D3ChartProps["data"][number]> = ({
 
   svg
     .append("g")
+    .attr("class", "x-axis")
     .attr("transform", `translate(0,${dimensions.height - margins.bottom})`)
     .call(
       d3

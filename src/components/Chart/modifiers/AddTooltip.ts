@@ -58,8 +58,8 @@ export const AddTooltip: Modifier<D3ChartProps["data"][number]> = ({
     .append("rect")
     .attr("x", margins.left)
     .attr("y", margins.top)
-    .attr("width", dimensions.width - margins.left - margins.right)
-    .attr("height", dimensions.height - margins.top - margins.bottom)
+    .attr("width", dimensions.innerWidth)
+    .attr("height", dimensions.innerHeight)
     .attr("fill", "transparent")
     .on("mousemove", function (event) {
       const [mx] = d3.pointer(event);

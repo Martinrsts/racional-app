@@ -19,6 +19,7 @@ export const addShadow: Modifier<D3ChartProps["data"][number]> = ({
 
   svg
     .append("path")
+    .attr("class", "shadow-path")
     .datum(data)
     .attr("fill", "url(#area-gradient)")
     .attr("clip-path", "url(#chart-clip)")
