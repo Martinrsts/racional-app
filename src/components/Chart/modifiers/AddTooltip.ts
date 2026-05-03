@@ -1,4 +1,4 @@
-import { D3ChartProps } from "../D3Chart";
+import { D3ChartProps } from "..";
 import { Modifier } from "./Modifier";
 import * as d3 from "d3";
 

@@ -1,5 +1,5 @@
 import { useFirestoreDocument } from "./hooks/useFirestoreDocument";
-import { D3Chart } from "./components/D3Chart";
+import { Chart } from "./components/Chart";
 import { collectionName, documentId } from "./firebase/config";
 
 export default function App() {
@@ -13,7 +13,7 @@ export default function App() {
 
   return (
     <main>
-      <D3Chart data={data ? data.array : []} />
+      <Chart data={data ? data.array : []} />
     </main>
   );
 }

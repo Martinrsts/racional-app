@@ -1,4 +1,4 @@
-import { D3ChartProps } from "../D3Chart";
+import { D3ChartProps } from "..";
 import * as d3 from "d3";
 
 export const calculateScales = (

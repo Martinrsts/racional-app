@@ -55,7 +55,7 @@ const chart = (data: D3ChartProps["data"]) => {
   return svg.node();
 };
 
-export function D3Chart({ data }: D3ChartProps) {
+export function Chart({ data }: D3ChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

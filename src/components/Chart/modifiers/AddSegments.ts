@@ -1,4 +1,4 @@
-import { D3ChartProps } from "../D3Chart";
+import { D3ChartProps } from "..";
 import { Modifier } from "./Modifier";
 
 export const addSegments: Modifier<D3ChartProps["data"][number]> = ({
