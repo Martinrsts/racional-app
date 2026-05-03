@@ -1,38 +1,38 @@
 import * as d3 from "d3";
 
 const buildSVG = (
-  viewBoxDimensions: {
+  dimensions: {
     width: number;
     height: number;
     innerWidth: number;
     innerHeight: number;
   },
-  chartDimensions: {
-    width: number;
-    height: number;
-  },
-  colorSchema: Record<string, string>,
   margins: { left: number; right: number; top: number; bottom: number },
+  colorSchema: Record<string, string>,
+  ids: { gradient: string; clip: string },
   chartBottom: number,
 ) => {
   const svg = d3
     .create("svg")
-    .attr("viewBox", [0, 0, viewBoxDimensions.width, viewBoxDimensions.height])
-    .style("width", "100%")
+    .attr("viewBox", [0, 0, dimensions.width, dimensions.height])
+    .style("width", "auto")
     .style("height", "auto")
+    .style("max-width", "100%")
+    .style("max-height", "100%")
+    .style("display", "block")
     .style("font-family", "system-ui, -apple-system, sans-serif");
 
   svg
     .append("rect")
-    .attr("width", chartDimensions.width)
-    .attr("height", chartDimensions.height)
+    .attr("width", dimensions.width)
+    .attr("height", dimensions.height)
     .attr("fill", colorSchema.bg);
 
   const defs = svg.append("defs");
 
   const gradient = defs
     .append("linearGradient")
-    .attr("id", "area-gradient")
+    .attr("id", ids.gradient)
     .attr("gradientUnits", "userSpaceOnUse")
     .attr("x1", 0)
     .attr("y1", margins.top)
@@ -51,12 +51,13 @@ const buildSVG = (
 
   defs
     .append("clipPath")
-    .attr("id", "chart-clip")
+    .attr("id", ids.clip)
     .append("rect")
     .attr("x", margins.left)
     .attr("y", margins.top)
-    .attr("width", viewBoxDimensions.innerWidth)
-    .attr("height", viewBoxDimensions.innerHeight);
+    .attr("width", dimensions.innerWidth)
+    .attr("height", dimensions.innerHeight);
+
   return svg;
 };
 
@@ -66,8 +67,6 @@ export const SVGInit = (
     height: number;
     innerWidth: number;
     innerHeight: number;
-    detailWidth: number;
-    detailHeight: number;
   },
   margins: { left: number; right: number; top: number; bottom: number },
   colorSchema: Record<string, string>,
@@ -76,19 +75,17 @@ export const SVGInit = (
 
   const svg = buildSVG(
     dimensions,
-    dimensions,
-    colorSchema,
     margins,
+    colorSchema,
+    { gradient: "area-gradient", clip: "chart-clip" },
     chartBottom,
   );
+
   const detailSvg = buildSVG(
     dimensions,
-    {
-      width: dimensions.detailWidth,
-      height: dimensions.detailHeight,
-    },
-    colorSchema,
     margins,
+    colorSchema,
+    { gradient: "detail-area-gradient", clip: "detail-clip" },
     chartBottom,
   );
 
@@ -96,7 +93,7 @@ export const SVGInit = (
     .append("text")
     .attr("x", margins.left + 8)
     .attr("y", margins.top - 8)
-    .attr("font-size", "11px")
+    .attr("font-size", "15px")
     .attr("fill", colorSchema.text)
     .text("Vista detallada");
 

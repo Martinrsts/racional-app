@@ -32,27 +32,17 @@ const colorSchema = {
   border: "#e2e8f0",
 };
 
-const cardStyle: React.CSSProperties = {
-  background: "#ffffff",
-  borderRadius: "16px",
-  border: "1px solid #e2e8f0",
-  boxShadow: "0 2px 12px rgba(15, 23, 42, 0.06)",
-  padding: "4px",
-  overflow: "hidden",
+const dimensions = {
+  width: 800,
+  height: 780,
+  innerWidth: 800 - 72 - 24,
+  innerHeight: 780 - 32 - 48,
 };
+const margins = { left: 72, right: 24, top: 32, bottom: 48 };
 
 export function Chart({ data }: D3ChartProps) {
   const mainRef = useRef<HTMLDivElement>(null);
   const detailRef = useRef<HTMLDivElement>(null);
-  const dimensions = {
-    width: 800,
-    height: 780,
-    innerWidth: 800 - 72 - 24,
-    innerHeight: 780 - 32 - 48,
-    detailWidth: 400,
-    detailHeight: 390,
-  };
-  const margins = { left: 72, right: 24, top: 32, bottom: 48 };
 
   useEffect(() => {
     if (!data?.length || !mainRef.current || !detailRef.current) return;
@@ -79,18 +69,19 @@ export function Chart({ data }: D3ChartProps) {
   }, [data]);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "flex-start",
-        gap: "12px",
-        maxWidth: "1400px",
-        margin: "0 auto",
-        padding: "0 16px",
-      }}
-    >
-      <div ref={mainRef} style={{ flex: 2, ...cardStyle }} />
-      <div ref={detailRef} style={{ flex: 1, ...cardStyle }} />
+    <div className="h-full flex items-start justify-center">
+      {/* relative wrapper so detail can be absolutely positioned to its right */}
+      <div className="relative h-full w-full max-w-[860px]">
+        <div
+          ref={mainRef}
+          className="h-full bg-white rounded-2xl border border-slate-200 shadow-sm p-1 overflow-hidden flex items-center justify-center"
+        />
+        <div
+          ref={detailRef}
+          className="absolute top-0 left-[calc(100%+16px)]  w-[380px] bg-white rounded-2xl border border-slate-200 shadow-sm p-1 overflow-hidden flex items-center justify-center"
+          style={{ visibility: "hidden" }}
+        />
+      </div>
     </div>
   );
 }

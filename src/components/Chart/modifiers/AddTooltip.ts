@@ -27,28 +27,28 @@ export const AddTooltip: Modifier<D3ChartProps["data"][number]> = ({
   tooltip
     .append("circle")
     .attr("class", "tip-dot")
-    .attr("r", 5)
+    .attr("r", 7)
     .attr("stroke", colorSchema.bg)
-    .attr("stroke-width", 2);
+    .attr("stroke-width", 2.5);
 
   const tipBox = tooltip.append("g").attr("class", "tip-box");
   tipBox
     .append("rect")
-    .attr("rx", 8)
+    .attr("rx", 10)
     .attr("fill", colorSchema.surface)
     .attr("stroke", colorSchema.border)
     .attr("stroke-width", 1)
     .style("filter", "drop-shadow(0 2px 8px rgba(0,0,0,0.08))");
   const tipDate = tipBox
     .append("text")
-    .attr("font-size", "10px")
+    .attr("font-size", "16px")
     .attr("fill", colorSchema.text);
   const tipValue = tipBox
     .append("text")
-    .attr("font-size", "13px")
+    .attr("font-size", "24px")
     .attr("font-weight", "600")
     .attr("fill", colorSchema.textDark);
-  const tipReturn = tipBox.append("text").attr("font-size", "11px");
+  const tipReturn = tipBox.append("text").attr("font-size", "20px");
 
   const bisect = d3.bisector((d: D3ChartProps["data"][number]) =>
     d.date.toDate(),
@@ -86,13 +86,13 @@ export const AddTooltip: Modifier<D3ChartProps["data"][number]> = ({
         .attr("cy", cy)
         .attr("fill", isGain ? colorSchema.gain : colorSchema.loss);
 
-      const boxW = 140;
-      const boxH = 58;
-      const pad = 10;
+      const boxW = 210;
+      const boxH = 90;
+      const pad = 14;
       const boxX =
-        cx + 14 + boxW > dimensions.width - margins.right
-          ? cx - 14 - boxW
-          : cx + 14;
+        cx + 18 + boxW > dimensions.width - margins.right
+          ? cx - 18 - boxW
+          : cx + 18;
       const boxY = Math.max(
         margins.top,
         Math.min(cy - boxH / 2, dimensions.height - margins.bottom - boxH),
@@ -106,15 +106,15 @@ export const AddTooltip: Modifier<D3ChartProps["data"][number]> = ({
         .attr("height", boxH + pad * 2);
       tipDate
         .attr("x", boxX)
-        .attr("y", boxY + 10)
+        .attr("y", boxY + 16)
         .text(d3.timeFormat("%d %b %Y")(d.date.toDate()));
       tipValue
         .attr("x", boxX)
-        .attr("y", boxY + 30)
+        .attr("y", boxY + 48)
         .text(`$${d3.format(",.2f")(d.portfolioValue)}`);
       tipReturn
         .attr("x", boxX)
-        .attr("y", boxY + 46)
+        .attr("y", boxY + 74)
         .attr("fill", isGain ? colorSchema.gain : colorSchema.loss)
         .text(`${isGain ? "+" : ""}${d3.format(".2%")(d.dailyReturn)}`);
     })

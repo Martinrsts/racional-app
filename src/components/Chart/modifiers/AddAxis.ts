@@ -38,7 +38,7 @@ export const addAxis: Modifier<D3ChartProps["data"][number]> = ({
       g
         .selectAll(".tick text")
         .attr("fill", colorSchema.text)
-        .attr("font-size", "11px"),
+        .attr("font-size", "15px"),
     );
 
   svg
@@ -57,7 +57,7 @@ export const addAxis: Modifier<D3ChartProps["data"][number]> = ({
       g
         .selectAll(".tick text")
         .attr("fill", colorSchema.text)
-        .attr("font-size", "11px")
+        .attr("font-size", "15px")
         .attr("dy", "1.4em"),
     );
 };

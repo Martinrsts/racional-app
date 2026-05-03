@@ -101,7 +101,7 @@ export const createAddZoom =
           g
             .selectAll(".tick text")
             .attr("fill", colorSchema.text)
-            .attr("font-size", "11px")
+            .attr("font-size", "20px")
             .attr("dy", "1.4em"),
         );
 
@@ -119,7 +119,7 @@ export const createAddZoom =
           g
             .selectAll(".tick text")
             .attr("fill", colorSchema.text)
-            .attr("font-size", "11px"),
+            .attr("font-size", "20px"),
         );
 
       detailSvg

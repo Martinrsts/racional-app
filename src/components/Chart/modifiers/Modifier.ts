@@ -8,8 +8,6 @@ interface ModifierProps<T> {
     height: number;
     innerHeight: number;
     innerWidth: number;
-    detailWidth: number;
-    detailHeight: number;
   };
   margins: { left: number; right: number; top: number; bottom: number };
   colorSchema: Record<string, string>;
