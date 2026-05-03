@@ -43,6 +43,8 @@ const margins = { left: 72, right: 24, top: 32, bottom: 48 };
 export function Chart({ data }: D3ChartProps) {
   const mainRef = useRef<HTMLDivElement>(null);
   const detailRef = useRef<HTMLDivElement>(null);
+  const zoomEnabledRef = useRef(false);
+  const zoomDomainRef = useRef<[Date, Date] | null>(null);
 
   useEffect(() => {
     if (!data?.length || !mainRef.current || !detailRef.current) return;
@@ -61,7 +63,12 @@ export function Chart({ data }: D3ChartProps) {
       addSegments,
       addLegend,
       AddTooltip,
-      createAddZoom(detailSvg),
+      createAddZoom(detailSvg, {
+        initiallyEnabled: zoomEnabledRef.current,
+        initialDomain: zoomDomainRef.current ?? undefined,
+        onToggle: (enabled) => { zoomEnabledRef.current = enabled; },
+        onDomainChange: (domain) => { zoomDomainRef.current = domain; },
+      }),
     ];
     for (const modifier of modifiers) {
       modifier({ svg, xScale, yScale, dimensions, margins, colorSchema, data });

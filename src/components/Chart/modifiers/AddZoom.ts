@@ -7,6 +7,17 @@ type DataPoint = D3ChartProps["data"][number];
 export const createAddZoom =
   (
     detailSvg: d3.Selection<SVGSVGElement, undefined, null, undefined>,
+    {
+      initiallyEnabled = false,
+      initialDomain,
+      onToggle,
+      onDomainChange,
+    }: {
+      initiallyEnabled?: boolean;
+      initialDomain?: [Date, Date];
+      onToggle?: (enabled: boolean) => void;
+      onDomainChange?: (domain: [Date, Date]) => void;
+    } = {},
   ): Modifier<DataPoint> =>
   ({ svg, xScale, dimensions, margins, colorSchema, data }) => {
     const chartLeft = margins.left;
@@ -55,7 +66,10 @@ export const createAddZoom =
         if (!event.selection) return;
         const [x0, x1] = event.selection as [number, number];
         positionHandles(x0, x1);
-        updateDetail(xScale.invert(x0), xScale.invert(x1));
+        const d0 = xScale.invert(x0);
+        const d1 = xScale.invert(x1);
+        onDomainChange?.([d0, d1]);
+        updateDetail(d0, d1);
       });
 
     const brushGroup = svg
@@ -125,7 +139,7 @@ export const createAddZoom =
       detailSvg
         .select<SVGGElement>(".detail-grid")
         .attr("transform", `translate(${margins.left},0)`)
-        .call(d3.axisLeft(dy).ticks(5).tickSize(-dimensions.width))
+        .call(d3.axisLeft(dy).ticks(5).tickSize(-dimensions.innerWidth))
         .call((g) => g.select(".domain").remove())
         .call((g) => g.selectAll(".tick text").remove())
         .call((g) =>
@@ -209,67 +223,83 @@ export const createAddZoom =
 
     const detailWrapper = detailSvg.node()!.parentElement as HTMLElement;
 
-    btn.on("click", () => {
-      zoomEnabled = !zoomEnabled;
+    function enableZoom() {
+      zoomEnabled = true;
+      detailWrapper.style.visibility = "visible";
+      brushGroup.style("display", null);
+      brushGroup.call(brush);
 
-      if (zoomEnabled) {
-        detailWrapper.style.visibility = "visible";
-        brushGroup.style("display", null);
-        brushGroup.call(brush);
+      brushGroup
+        .select(".selection")
+        .attr("fill", colorSchema.deposit)
+        .attr("fill-opacity", 0.12)
+        .attr("stroke", colorSchema.deposit)
+        .attr("stroke-width", 1.5);
 
+      brushGroup.selectAll(".handle").style("opacity", "0");
+
+      brushGroup
+        .selectAll(
+          ".ch-left,.ch-right,.cg-left-0,.cg-left-1,.cg-left-2,.cg-right-0,.cg-right-1,.cg-right-2",
+        )
+        .remove();
+
+      ["left", "right"].forEach((side) => {
         brushGroup
-          .select(".selection")
+          .append("rect")
+          .attr("class", `ch-${side}`)
+          .attr("width", handleW)
+          .attr("height", handleH)
+          .attr("rx", 4)
           .attr("fill", colorSchema.deposit)
-          .attr("fill-opacity", 0.12)
-          .attr("stroke", colorSchema.deposit)
-          .attr("stroke-width", 1.5);
+          .attr("fill-opacity", 0.9)
+          .style("pointer-events", "none");
 
-        brushGroup.selectAll(".handle").style("opacity", "0");
-
-        brushGroup
-          .selectAll(
-            ".ch-left,.ch-right,.cg-left-0,.cg-left-1,.cg-left-2,.cg-right-0,.cg-right-1,.cg-right-2",
-          )
-          .remove();
-
-        ["left", "right"].forEach((side) => {
+        [-1, 0, 1].forEach((_, i) => {
           brushGroup
-            .append("rect")
-            .attr("class", `ch-${side}`)
-            .attr("width", handleW)
-            .attr("height", handleH)
-            .attr("rx", 4)
-            .attr("fill", colorSchema.deposit)
-            .attr("fill-opacity", 0.9)
+            .append("line")
+            .attr("class", `cg-${side}-${i}`)
+            .attr("stroke", "#ffffff")
+            .attr("stroke-width", 1.2)
+            .attr("stroke-linecap", "round")
             .style("pointer-events", "none");
-
-          [-1, 0, 1].forEach((_, i) => {
-            brushGroup
-              .append("line")
-              .attr("class", `cg-${side}-${i}`)
-              .attr("stroke", "#ffffff")
-              .attr("stroke-width", 1.2)
-              .attr("stroke-linecap", "round")
-              .style("pointer-events", "none");
-          });
         });
+      });
 
+      let px0: number, px1: number;
+      if (initialDomain) {
+        px0 = Math.max(chartLeft, Math.min(chartRight, xScale(initialDomain[0])));
+        px1 = Math.max(chartLeft, Math.min(chartRight, xScale(initialDomain[1])));
+      } else {
         const hw = (chartRight - chartLeft) * 0.1;
         const cx = chartLeft + (chartRight - chartLeft) / 2;
-        brushGroup.call(brush.move, [cx - hw, cx + hw]);
-
-        btnRect
-          .attr("fill", colorSchema.deposit)
-          .attr("stroke", colorSchema.deposit);
-        btnLabel.attr("fill", "#ffffff").text("✕ Zoom");
-      } else {
-        brushGroup.style("display", "none");
-        detailWrapper.style.visibility = "hidden";
-
-        btnRect
-          .attr("fill", colorSchema.surface)
-          .attr("stroke", colorSchema.border);
-        btnLabel.attr("fill", colorSchema.text).text("+ Zoom");
+        px0 = cx - hw;
+        px1 = cx + hw;
       }
+      brushGroup.call(brush.move, [px0, px1]);
+
+      btnRect
+        .attr("fill", colorSchema.deposit)
+        .attr("stroke", colorSchema.deposit);
+      btnLabel.attr("fill", "#ffffff").text("✕ Zoom");
+      onToggle?.(true);
+    }
+
+    function disableZoom() {
+      zoomEnabled = false;
+      brushGroup.style("display", "none");
+      detailWrapper.style.visibility = "hidden";
+      btnRect
+        .attr("fill", colorSchema.surface)
+        .attr("stroke", colorSchema.border);
+      btnLabel.attr("fill", colorSchema.text).text("+ Zoom");
+      onToggle?.(false);
+    }
+
+    btn.on("click", () => {
+      if (zoomEnabled) disableZoom();
+      else enableZoom();
     });
+
+    if (initiallyEnabled) enableZoom();
   };
