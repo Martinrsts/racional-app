@@ -11,6 +11,7 @@ interface ModifierProps<T> {
   };
   margins: { left: number; right: number; top: number; bottom: number };
   colorSchema: Record<string, string>;
+  mode: "default" | "return";
 }
 
 export type Modifier<T> = (props: ModifierProps<T>) => void;

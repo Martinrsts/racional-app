@@ -1,4 +1,4 @@
-import { D3ChartProps } from "..";
+import { DataModified } from "..";
 import { Modifier } from "./Modifier";
 
 const legendItems = [
@@ -7,7 +7,7 @@ const legendItems = [
   { color: "deposit", label: "Depósito" },
 ];
 
-export const addLegend: Modifier<D3ChartProps["data"][number]> = ({
+export const addLegend: Modifier<DataModified> = ({
   svg,
   margins,
   colorSchema,

@@ -1,8 +1,6 @@
-import { D3ChartProps } from "..";
+import { DataModified } from "..";
 import { Modifier } from "./Modifier";
 import * as d3 from "d3";
-
-type DataPoint = D3ChartProps["data"][number];
 
 export const createAddZoom =
   (
@@ -18,8 +16,8 @@ export const createAddZoom =
       onToggle?: (enabled: boolean) => void;
       onDomainChange?: (domain: [Date, Date]) => void;
     } = {},
-  ): Modifier<DataPoint> =>
-  ({ svg, xScale, dimensions, margins, colorSchema, data }) => {
+  ): Modifier<DataModified> =>
+  ({ svg, xScale, dimensions, margins, colorSchema, data, mode }) => {
     const chartLeft = margins.left;
     const chartRight = dimensions.width - margins.right;
     const chartTop = margins.top;
@@ -91,16 +89,18 @@ export const createAddZoom =
 
       const dx = d3.scaleTime().domain([d0, d1]).range([chartLeft, chartRight]);
 
-      const [ymin, ymax] = d3.extent(filtered, (d) => d.portfolioValue) as [
-        number,
-        number,
-      ];
+      const [ymin, ymax] = d3.extent(filtered, (d) =>
+        mode === "return" ? d.accReturn : d.portfolioValue,
+      ) as [number, number];
       const pad = (ymax - ymin) * 0.14 || ymax * 0.05;
       const dy = d3
         .scaleLinear()
         .domain([ymin - pad, ymax + pad])
         .range([chartBottom, margins.top]);
 
+      const getYValue = (d: DataModified) => {
+        return mode === "return" ? dy(d.accReturn) : dy(d.portfolioValue);
+      };
       detailSvg
         .select<SVGGElement>(".detail-x-axis")
         .call(
@@ -125,7 +125,10 @@ export const createAddZoom =
           d3
             .axisLeft(dy)
             .ticks(5)
-            .tickFormat((d) => `$${d3.format(",.2s")(d as number)}`),
+            .tickFormat(
+              (d) =>
+                `$${mode === "return" ? d3.format(".1%")(d as number) : d3.format(",.2s")(d as number)}`,
+            ),
         )
         .call((g) => g.select(".domain").remove())
         .call((g) => g.selectAll(".tick line").remove())
@@ -150,10 +153,10 @@ export const createAddZoom =
         );
 
       const area = d3
-        .area<DataPoint>()
+        .area<DataModified>()
         .x((d) => dx(d.date.toDate()))
         .y0(chartBottom)
-        .y1((d) => dy(d.portfolioValue))
+        .y1((d) => dy(mode === "return" ? d.accReturn : d.portfolioValue))
         .curve(d3.curveMonotoneX);
 
       detailSvg
@@ -177,13 +180,13 @@ export const createAddZoom =
         .join("line")
         .attr("clip-path", "url(#detail-clip)")
         .attr("x1", (d) => dx(d.start.date.toDate()))
-        .attr("y1", (d) => dy(d.start.portfolioValue))
+        .attr("y1", (d) => getYValue(d.start))
         .attr("x2", (d) => dx(d.end.date.toDate()))
-        .attr("y2", (d) => dy(d.end.portfolioValue))
+        .attr("y2", (d) => getYValue(d.end))
         .attr("stroke", (d) =>
-          d.end.contributions !== d.start.contributions
+          d.end.contributions !== d.start.contributions && mode === "default"
             ? colorSchema.deposit
-            : d.end.portfolioValue >= d.start.portfolioValue
+            : d.end.dailyReturn >= 0
               ? colorSchema.gain
               : colorSchema.loss,
         )
@@ -268,8 +271,14 @@ export const createAddZoom =
 
       let px0: number, px1: number;
       if (initialDomain) {
-        px0 = Math.max(chartLeft, Math.min(chartRight, xScale(initialDomain[0])));
-        px1 = Math.max(chartLeft, Math.min(chartRight, xScale(initialDomain[1])));
+        px0 = Math.max(
+          chartLeft,
+          Math.min(chartRight, xScale(initialDomain[0])),
+        );
+        px1 = Math.max(
+          chartLeft,
+          Math.min(chartRight, xScale(initialDomain[1])),
+        );
       } else {
         const hw = (chartRight - chartLeft) * 0.1;
         const cx = chartLeft + (chartRight - chartLeft) / 2;

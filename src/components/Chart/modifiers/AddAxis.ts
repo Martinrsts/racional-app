@@ -1,17 +1,19 @@
-import { D3ChartProps } from "..";
+import { DataModified } from "..";
 import { Modifier } from "./Modifier";
 import * as d3 from "d3";
 
-export const addAxis: Modifier<D3ChartProps["data"][number]> = ({
+export const addAxis: Modifier<DataModified> = ({
   svg,
   margins,
   dimensions,
   xScale,
   yScale,
   colorSchema,
+  mode,
 }) => {
   svg
     .append("g")
+    .attr("class", "y-grid")
     .attr("transform", `translate(${margins.left},0)`)
     .call(d3.axisLeft(yScale).ticks(5).tickSize(-dimensions.innerWidth))
     .call((g) => g.select(".domain").remove())
@@ -25,12 +27,16 @@ export const addAxis: Modifier<D3ChartProps["data"][number]> = ({
 
   svg
     .append("g")
+    .attr("class", "y-labels")
     .attr("transform", `translate(${margins.left},0)`)
     .call(
       d3
         .axisLeft(yScale)
         .ticks(5)
-        .tickFormat((d) => `$${d3.format(",.2s")(d as number)}`),
+        .tickFormat(
+          (d) =>
+            `$${d3.format(mode === "return" ? ".1%" : ",.2s")(d as number)}`,
+        ),
     )
     .call((g) => g.select(".domain").remove())
     .call((g) => g.selectAll(".tick line").remove())

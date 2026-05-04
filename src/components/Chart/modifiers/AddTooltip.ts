@@ -1,8 +1,8 @@
-import { D3ChartProps } from "..";
+import { DataModified } from "..";
 import { Modifier } from "./Modifier";
 import * as d3 from "d3";
 
-export const AddTooltip: Modifier<D3ChartProps["data"][number]> = ({
+export const AddTooltip: Modifier<DataModified> = ({
   svg,
   xScale,
   yScale,
@@ -10,7 +10,11 @@ export const AddTooltip: Modifier<D3ChartProps["data"][number]> = ({
   margins,
   colorSchema,
   data,
+  mode,
 }) => {
+  const getYValue = (d: DataModified) => {
+    return mode === "return" ? yScale(d.accReturn) : yScale(d.portfolioValue);
+  };
   const tooltip = svg
     .append("g")
     .style("pointer-events", "none")
@@ -41,18 +45,16 @@ export const AddTooltip: Modifier<D3ChartProps["data"][number]> = ({
     .style("filter", "drop-shadow(0 2px 8px rgba(0,0,0,0.08))");
   const tipDate = tipBox
     .append("text")
-    .attr("font-size", "16px")
+    .attr("font-size", "12px")
     .attr("fill", colorSchema.text);
   const tipValue = tipBox
     .append("text")
-    .attr("font-size", "24px")
+    .attr("font-size", "18px")
     .attr("font-weight", "600")
     .attr("fill", colorSchema.textDark);
-  const tipReturn = tipBox.append("text").attr("font-size", "20px");
+  const tipReturn = tipBox.append("text").attr("font-size", "15px");
 
-  const bisect = d3.bisector((d: D3ChartProps["data"][number]) =>
-    d.date.toDate(),
-  ).left;
+  const bisect = d3.bisector((d: DataModified) => d.date.toDate()).left;
 
   svg
     .append("rect")
@@ -75,7 +77,7 @@ export const AddTooltip: Modifier<D3ChartProps["data"][number]> = ({
           : d1;
 
       const cx = xScale(d.date.toDate());
-      const cy = yScale(d.portfolioValue);
+      const cy = getYValue(d);
       const isGain = d.dailyReturn >= 0;
 
       tooltip.style("display", null);
@@ -86,13 +88,13 @@ export const AddTooltip: Modifier<D3ChartProps["data"][number]> = ({
         .attr("cy", cy)
         .attr("fill", isGain ? colorSchema.gain : colorSchema.loss);
 
-      const boxW = 210;
-      const boxH = 90;
-      const pad = 14;
+      const boxW = 157;
+      const boxH = 67;
+      const pad = 10;
       const boxX =
-        cx + 18 + boxW > dimensions.width - margins.right
-          ? cx - 18 - boxW
-          : cx + 18;
+        cx + 13 + boxW > dimensions.width - margins.right
+          ? cx - 13 - boxW
+          : cx + 13;
       const boxY = Math.max(
         margins.top,
         Math.min(cy - boxH / 2, dimensions.height - margins.bottom - boxH),
@@ -106,15 +108,15 @@ export const AddTooltip: Modifier<D3ChartProps["data"][number]> = ({
         .attr("height", boxH + pad * 2);
       tipDate
         .attr("x", boxX)
-        .attr("y", boxY + 16)
+        .attr("y", boxY + 12)
         .text(d3.timeFormat("%d %b %Y")(d.date.toDate()));
       tipValue
         .attr("x", boxX)
-        .attr("y", boxY + 48)
+        .attr("y", boxY + 36)
         .text(`$${d3.format(",.2f")(d.portfolioValue)}`);
       tipReturn
         .attr("x", boxX)
-        .attr("y", boxY + 74)
+        .attr("y", boxY + 60)
         .attr("fill", isGain ? colorSchema.gain : colorSchema.loss)
         .text(`${isGain ? "+" : ""}${d3.format(".2%")(d.dailyReturn)}`);
     })

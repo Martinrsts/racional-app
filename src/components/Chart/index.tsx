@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Timestamp } from "firebase/firestore";
 import { addAxis } from "./modifiers/AddAxis";
 import { addShadow } from "./modifiers/AddShadow";
@@ -6,17 +6,24 @@ import { addSegments } from "./modifiers/AddSegments";
 import { addLegend } from "./modifiers/AddLegend";
 import { AddTooltip } from "./modifiers/AddTooltip";
 import { createAddZoom } from "./modifiers/AddZoom";
+import { createAddModeToggle } from "./modifiers/AddModeToggle";
 import { SVGInit } from "./SVGInit";
 import { calculateScales } from "./utils/calculateScales";
 
 export interface D3ChartProps {
-  data: {
-    date: Timestamp;
-    contributions: number;
-    portfolioValue: number;
-    dailyReturn: number;
-    portofolioIndex: number;
-  }[];
+  data: DataPoint[];
+}
+
+export type DataPoint = {
+  date: Timestamp;
+  contributions: number;
+  portfolioValue: number;
+  dailyReturn: number;
+  portofolioIndex: number;
+};
+
+export interface DataModified extends DataPoint {
+  accReturn: number;
 }
 
 const colorSchema = {
@@ -45,11 +52,29 @@ export function Chart({ data }: D3ChartProps) {
   const detailRef = useRef<HTMLDivElement>(null);
   const zoomEnabledRef = useRef(false);
   const zoomDomainRef = useRef<[Date, Date] | null>(null);
+  const [mode, setMode] = useState<"default" | "return">("default");
+
+  const dataWithAccReturn = useMemo(() => {
+    return data
+      .sort((d) => d.date.toMillis())
+      .reduce((acc: DataModified[], dataInstance) => {
+        const last = acc.length > 0 ? acc[acc.length - 1] : null;
+        const lastReturn = last ? last.accReturn : 1;
+        const newReturn = lastReturn * (1 + dataInstance.dailyReturn);
+        acc.push({ ...dataInstance, accReturn: newReturn });
+        return acc;
+      }, []);
+  }, [data]);
 
   useEffect(() => {
     if (!data?.length || !mainRef.current || !detailRef.current) return;
 
-    const { xScale, yScale } = calculateScales(data, dimensions, margins);
+    const { xScale, yScale } = calculateScales(
+      dataWithAccReturn,
+      dimensions,
+      margins,
+      mode,
+    );
     const { svg, detailSvg } = SVGInit(dimensions, margins, colorSchema);
 
     mainRef.current.innerHTML = "";
@@ -57,27 +82,44 @@ export function Chart({ data }: D3ChartProps) {
     mainRef.current.appendChild(svg.node()!);
     detailRef.current.appendChild(detailSvg.node()!);
 
+    const addZoom = createAddZoom(detailSvg, {
+      initiallyEnabled: zoomEnabledRef.current,
+      initialDomain: zoomDomainRef.current ?? undefined,
+      onToggle: (enabled) => {
+        zoomEnabledRef.current = enabled;
+      },
+      onDomainChange: (domain) => {
+        zoomDomainRef.current = domain;
+      },
+    });
+
+    const addModeToggle = createAddModeToggle({ onToggle: setMode });
+
     const modifiers = [
       addAxis,
       addShadow,
       addSegments,
       addLegend,
       AddTooltip,
-      createAddZoom(detailSvg, {
-        initiallyEnabled: zoomEnabledRef.current,
-        initialDomain: zoomDomainRef.current ?? undefined,
-        onToggle: (enabled) => { zoomEnabledRef.current = enabled; },
-        onDomainChange: (domain) => { zoomDomainRef.current = domain; },
-      }),
+      addZoom,
+      addModeToggle,
     ];
     for (const modifier of modifiers) {
-      modifier({ svg, xScale, yScale, dimensions, margins, colorSchema, data });
+      modifier({
+        svg,
+        xScale,
+        yScale,
+        dimensions,
+        margins,
+        colorSchema,
+        data: dataWithAccReturn,
+        mode,
+      });
     }
-  }, [data]);
+  }, [data, mode]);
 
   return (
     <div className="h-full flex items-start justify-center">
-      {/* relative wrapper so detail can be absolutely positioned to its right */}
       <div className="relative h-full w-full max-w-[860px]">
         <div
           ref={mainRef}
@@ -85,7 +127,7 @@ export function Chart({ data }: D3ChartProps) {
         />
         <div
           ref={detailRef}
-          className="absolute top-0 left-[calc(100%+16px)]  w-[380px] bg-white rounded-2xl border border-slate-200 shadow-sm p-1 overflow-hidden flex items-center justify-center"
+          className="absolute top-0 left-[calc(100%+16px)] w-[380px] bg-white rounded-2xl border border-slate-200 shadow-sm p-1 overflow-hidden flex items-center justify-center"
           style={{ visibility: "hidden" }}
         />
       </div>
