@@ -228,7 +228,7 @@ export const createAddZoom =
 
     function enableZoom() {
       zoomEnabled = true;
-      detailWrapper.style.visibility = "visible";
+      detailWrapper.style.display = "flex";
       brushGroup.style("display", null);
       brushGroup.call(brush);
 
@@ -297,7 +297,7 @@ export const createAddZoom =
     function disableZoom() {
       zoomEnabled = false;
       brushGroup.style("display", "none");
-      detailWrapper.style.visibility = "hidden";
+      detailWrapper.style.display = "none";
       btnRect
         .attr("fill", colorSchema.surface)
         .attr("stroke", colorSchema.border);

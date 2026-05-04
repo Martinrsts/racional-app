@@ -13,7 +13,7 @@ export default function App() {
   return (
     <div className="h-full flex flex-col bg-slate-100">
       <Header />
-      <main className="flex-1 min-h-0 overflow-hidden p-6">
+      <main className="flex-1 min-h-0 overflow-y-auto p-6">
         {error && <StatusMessage text={`Error: ${error.message}`} isError />}
         {loading && <Chart data={[]} />}
         {!error && <Chart data={data ? data.array : []} />}

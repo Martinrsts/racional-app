@@ -123,17 +123,16 @@ export function Chart({ data }: D3ChartProps) {
   }, [data, mode]);
 
   return (
-    <div className="h-full flex items-start justify-center">
-      <div className="relative h-full w-full max-w-[860px]">
+    <div className="h-ful w-full flex items-start justify-center">
+      <div className="w-full flex justify-space-between gap-6">
         <div
           ref={mainRef}
-          className="h-full bg-white rounded-2xl border border-slate-200 shadow-sm p-1 overflow-hidden flex items-center justify-center"
+          className=" max-w-[860px] w-full h-full bg-white rounded-2xl border border-slate-200 shadow-sm p-1 overflow-hidden flex items-center justify-center"
         />
         <Skeleton isReady={isReady} />
         <div
           ref={detailRef}
-          className="absolute top-0 left-[calc(100%+16px)] w-[380px] bg-white rounded-2xl border border-slate-200 shadow-sm p-1 overflow-hidden flex items-center justify-center"
-          style={{ visibility: "hidden" }}
+          className=" max-w-[860px] w-full bg-white rounded-2xl border border-slate-200 shadow-sm p-1 overflow-hidden flex items-center justify-center"
         />
       </div>
     </div>
