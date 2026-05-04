@@ -9,6 +9,7 @@ import { createAddZoom } from "./modifiers/AddZoom";
 import { createAddModeToggle } from "./modifiers/AddModeToggle";
 import { SVGInit } from "./SVGInit";
 import { calculateScales } from "./utils/calculateScales";
+import { Skeleton } from "./Skeleton";
 
 export interface D3ChartProps {
   data: DataPoint[];
@@ -53,6 +54,7 @@ export function Chart({ data }: D3ChartProps) {
   const zoomEnabledRef = useRef(false);
   const zoomDomainRef = useRef<[Date, Date] | null>(null);
   const [mode, setMode] = useState<"default" | "return">("default");
+  const [isReady, setIsReady] = useState(false);
 
   const dataWithAccReturn = useMemo(() => {
     return data
@@ -116,6 +118,8 @@ export function Chart({ data }: D3ChartProps) {
         mode,
       });
     }
+
+    setIsReady(true);
   }, [data, mode]);
 
   return (
@@ -125,6 +129,7 @@ export function Chart({ data }: D3ChartProps) {
           ref={mainRef}
           className="h-full bg-white rounded-2xl border border-slate-200 shadow-sm p-1 overflow-hidden flex items-center justify-center"
         />
+        <Skeleton isReady={isReady} />
         <div
           ref={detailRef}
           className="absolute top-0 left-[calc(100%+16px)] w-[380px] bg-white rounded-2xl border border-slate-200 shadow-sm p-1 overflow-hidden flex items-center justify-center"

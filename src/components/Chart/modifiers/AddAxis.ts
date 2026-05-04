@@ -47,6 +47,7 @@ export const addAxis: Modifier<DataModified> = ({
         .attr("font-size", "15px"),
     );
 
+  const seenYears = new Set<number>();
   svg
     .append("g")
     .attr("class", "x-axis")
@@ -55,7 +56,14 @@ export const addAxis: Modifier<DataModified> = ({
       d3
         .axisBottom<Date>(xScale)
         .ticks(8)
-        .tickFormat((date) => d3.timeFormat("%d %b")(date)),
+        .tickFormat((date) => {
+          const year = date.getFullYear();
+          if (!seenYears.has(year)) {
+            seenYears.add(year);
+            return d3.timeFormat("%Y")(date);
+          }
+          return d3.timeFormat("%d %b")(date);
+        }),
     )
     .call((g) => g.select(".domain").attr("stroke", colorSchema.grid))
     .call((g) => g.selectAll(".tick line").attr("stroke", colorSchema.grid))
@@ -65,5 +73,13 @@ export const addAxis: Modifier<DataModified> = ({
         .attr("fill", colorSchema.text)
         .attr("font-size", "15px")
         .attr("dy", "1.4em"),
+    )
+    .call((g) =>
+      g
+        .selectAll<SVGTextElement, unknown>(".tick text")
+        .filter(function () {
+          return /^\d{4}$/.test(this.textContent ?? "");
+        })
+        .attr("font-weight", "bold"),
     );
 };

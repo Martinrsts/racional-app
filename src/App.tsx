@@ -14,9 +14,9 @@ export default function App() {
     <div className="h-full flex flex-col bg-slate-100">
       <Header />
       <main className="flex-1 min-h-0 overflow-hidden p-6">
-        {loading && <StatusMessage text="Loading portfolio data…" />}
         {error && <StatusMessage text={`Error: ${error.message}`} isError />}
-        {!loading && !error && <Chart data={data ? data.array : []} />}
+        {loading && <Chart data={[]} />}
+        {!error && <Chart data={data ? data.array : []} />}
       </main>
     </div>
   );
